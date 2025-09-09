@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, FormsModule],
+  imports: [RouterOutlet, FormsModule,HttpClientModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   title = 'facebookMetaApiFront';
@@ -25,7 +26,7 @@ export class AppComponent {
     district: '',
     city: '',
     demoDate: '',
-    demoTime: ''
+    demoTime: '',
   };
 
   // Data: states, districts by state, cities by district
@@ -34,7 +35,7 @@ export class AppComponent {
   districtsByState: Record<string, string[]> = {
     Gujarat: ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'],
     Maharashtra: ['Mumbai', 'Pune', 'Nagpur'],
-    Rajasthan: ['Jaipur', 'Udaipur']
+    Rajasthan: ['Jaipur', 'Udaipur'],
   };
 
   citiesByDistrict: Record<string, string[]> = {
@@ -48,15 +49,21 @@ export class AppComponent {
     Nagpur: ['Dharampeth', 'Sadar'],
 
     Jaipur: ['Malviya Nagar', 'Vaishali Nagar'],
-    Udaipur: ['Hiran Magri', 'Fatehpura']
+    Udaipur: ['Hiran Magri', 'Fatehpura'],
   };
 
+  constructor(private http: HttpClient) {}
+
   get filteredDistricts(): string[] {
-    return this.model.state ? (this.districtsByState[this.model.state] || []) : [];
+    return this.model.state
+      ? this.districtsByState[this.model.state] || []
+      : [];
   }
 
   get filteredCities(): string[] {
-    return this.model.district ? (this.citiesByDistrict[this.model.district] || []) : [];
+    return this.model.district
+      ? this.citiesByDistrict[this.model.district] || []
+      : [];
   }
 
   onStateChange(): void {
@@ -69,7 +76,16 @@ export class AppComponent {
   }
 
   onSave(): void {
-    console.log('Demo form data:', { ...this.model });
+    this.http.post('http://localhost:3000/save-demo', this.model).subscribe({
+      next: (res) => {
+        console.log('✅ Demo saved & WhatsApp message sent', res);
+        alert('Demo booked! Check WhatsApp.');
+      },
+      error: (err) => {
+        console.error('❌ Save error:', err);
+        alert('Failed to save demo.');
+      },
+    });
   }
 
   onCancel(form?: any): void {
@@ -79,7 +95,7 @@ export class AppComponent {
       district: '',
       city: '',
       demoDate: '',
-      demoTime: ''
+      demoTime: '',
     };
     if (form) {
       form.resetForm();
